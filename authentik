@@ -4,7 +4,7 @@ services:
   server:
     image: ghcr.io/goauthentik/server:2025.2.4
     container_name: authentik-server
-    command: server
+    command: /bin/bash /create_superuser.sh && server  # Runs the script before starting the server
     environment:
       - AUTHENTIK_REDIS__HOST=authentik-redis
       - AUTHENTIK_POSTGRESQL__HOST=authentik-db
@@ -27,6 +27,7 @@ services:
     volumes:
       - ./media:/media
       - ./custom-templates:/templates
+      - ./create_superuser.sh:/create_superuser.sh  # Mount the script into the container
     depends_on:
       - postgres
       - redis
