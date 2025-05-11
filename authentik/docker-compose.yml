@@ -2,9 +2,9 @@ version: "3.8"
 
 services:
   server:
-    image: ghcr.io/goauthentik/server:2025.2.4
+    image: ghcr.io/goauthentik/server:2025.4.0
     container_name: authentik-server
-    command: /bin/bash /create_superuser.sh && server  # Runs the script before starting the server
+    command: server
     environment:
       - AUTHENTIK_REDIS__HOST=authentik-redis
       - AUTHENTIK_POSTGRESQL__HOST=authentik-db
@@ -13,28 +13,31 @@ services:
       - AUTHENTIK_POSTGRESQL__PASSWORD=M0wgli2025@
       - AUTHENTIK_SECRET_KEY=M0wgli2025@
       - AUTHENTIK_ERROR_REPORTING__ENABLED=false
-      - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
-      - AUTHENTIK_EMAIL__PORT=587
-      - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
-      - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
-      - AUTHENTIK_EMAIL__USE_TLS=true
-      - AUTHENTIK_EMAIL__USE_SSL=false
-      - AUTHENTIK_EMAIL__TIMEOUT=10
-      - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
+      - AUTHENTIK_BOOTSTRAP_EMAIL=matt@lmediaconsulting.com
+      - AUTHENTIK_BOOTSTRAP_PASSWORD=M0wgli2025@!
+      - AUTHENTIK_BOOTSTRAP_USERNAME=admin
+      # The following email settings are commented out because you do not have Google Workspace
+      # - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
+      # - AUTHENTIK_EMAIL__PORT=587
+      # - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
+      # - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
+      # - AUTHENTIK_EMAIL__USE_TLS=true
+      # - AUTHENTIK_EMAIL__USE_SSL=false
+      # - AUTHENTIK_EMAIL__TIMEOUT=10
+      # - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
     ports:
       - "9100:9000"
       - "9444:9443"
     volumes:
       - ./media:/media
       - ./custom-templates:/templates
-      - ./create_superuser.sh:/create_superuser.sh  # Mount the script into the container
     depends_on:
       - postgres
       - redis
     restart: unless-stopped
 
   worker:
-    image: ghcr.io/goauthentik/server:2025.2.4
+    image: ghcr.io/goauthentik/server:2025.4.0
     container_name: authentik-worker
     command: worker
     environment:
@@ -45,17 +48,18 @@ services:
       - AUTHENTIK_POSTGRESQL__PASSWORD=M0wgli2025@
       - AUTHENTIK_SECRET_KEY=M0wgli2025@
       - AUTHENTIK_ERROR_REPORTING__ENABLED=false
-      - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
-      - AUTHENTIK_EMAIL__PORT=587
-      - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
-      - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
-      - AUTHENTIK_EMAIL__USE_TLS=true
-      - AUTHENTIK_EMAIL__USE_SSL=false
-      - AUTHENTIK_EMAIL__TIMEOUT=10
-      - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
+      # The following email settings are commented out because you do not have Google Workspace
+      # - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
+      # - AUTHENTIK_EMAIL__PORT=587
+      # - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
+      # - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
+      # - AUTHENTIK_EMAIL__USE_TLS=true
+      # - AUTHENTIK_EMAIL__USE_SSL=false
+      # - AUTHENTIK_EMAIL__TIMEOUT=10
+      # - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
     user: root
     volumes:
-      - /run/docker.sock:/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./media:/media
       - ./certs:/certs
       - ./custom-templates:/templates
@@ -99,3 +103,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
