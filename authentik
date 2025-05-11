@@ -1,0 +1,100 @@
+version: "3.8"
+
+services:
+  server:
+    image: ghcr.io/goauthentik/server:2025.2.4
+    container_name: authentik-server
+    command: server
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=M0wgli2025@
+      - AUTHENTIK_SECRET_KEY=M0wgli2025@
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=false
+      - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
+      - AUTHENTIK_EMAIL__PORT=587
+      - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
+      - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
+      - AUTHENTIK_EMAIL__USE_TLS=true
+      - AUTHENTIK_EMAIL__USE_SSL=false
+      - AUTHENTIK_EMAIL__TIMEOUT=10
+      - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
+    ports:
+      - "9100:9000"
+      - "9444:9443"
+    volumes:
+      - ./media:/media
+      - ./custom-templates:/templates
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  worker:
+    image: ghcr.io/goauthentik/server:2025.2.4
+    container_name: authentik-worker
+    command: worker
+    environment:
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-db
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=M0wgli2025@
+      - AUTHENTIK_SECRET_KEY=M0wgli2025@
+      - AUTHENTIK_ERROR_REPORTING__ENABLED=false
+      - AUTHENTIK_EMAIL__HOST=smtp.gmail.com
+      - AUTHENTIK_EMAIL__PORT=587
+      - AUTHENTIK_EMAIL__USERNAME=matt@lmediaconsulting.com
+      - AUTHENTIK_EMAIL__PASSWORD=M0wgli2025@
+      - AUTHENTIK_EMAIL__USE_TLS=true
+      - AUTHENTIK_EMAIL__USE_SSL=false
+      - AUTHENTIK_EMAIL__TIMEOUT=10
+      - AUTHENTIK_EMAIL__FROM=matt@lmediaconsulting.com
+    user: root
+    volumes:
+      - /run/docker.sock:/run/docker.sock
+      - ./media:/media
+      - ./certs:/certs
+      - ./custom-templates:/templates
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.0.0
+    container_name: authentik-redis
+    command: --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17.4
+    container_name: authentik-db
+    environment:
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD=M0wgli2025@
+      - POSTGRES_DB=authentik
+      - TZ=UTC
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentik"]
+      start_period: 30s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
